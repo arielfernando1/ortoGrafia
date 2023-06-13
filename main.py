@@ -17,12 +17,7 @@ class Game:
         # Randomize words
         random.shuffle(self.words)
         self.selected_word = 0
-        # Test settings
-        # self.dialog_offset = 0
-        # self.animation_speed = 2
-        # self.animation_offset = 0
         self.text_visible = True
-
         # global settings
         self.screen_width = sw
         self.screen_height = sh
@@ -84,13 +79,14 @@ class Game:
     def draw(self):
         self.level.background_image = pygame.transform.scale(
             self.level.background_image, (self.screen_width, self.screen_height))
-        # Add opacity to the background image
-        # self.level.background_image.set_alpha(0)
         self.screen.blit(self.level.background_image, (0, 0))
+        self.draw_bottom_bar()
+        # self.draw_top_bar()
         self.draw_score()
         self.draw_words()
         self.draw_lives()
         self.draw_dialog()
+        self.draw_character()
         pygame.display.flip()
 
     def change_level(self):
@@ -108,6 +104,14 @@ class Game:
         score_text = self.font_score.render(
             "Puntaje: " + str(self.score), True, (255, 255, 255))
         self.screen.blit(score_text, (10, 35 - score_text.get_height()/2))
+
+    def draw_top_bar(self):
+        pygame.draw.rect(self.screen, self.bar_color, pygame.Rect(
+            0, 0, self.screen_width, 80))
+
+    def draw_bottom_bar(self):
+        pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(
+            0, self.screen_height - 80, self.screen_width, 80))
 
     def draw_lives(self):
         for i in range(self.lives):
@@ -146,54 +150,52 @@ class Game:
                 y -= self.font_game_size + 10
             else:
                 x += word_width + word_spacing
+# Draw the character image at the center of the screen
 
+    def draw_character(self):
+        character_center_x = self.character_rect.x + self.character_rect.width // 2
+        character_center_y = self.character_rect.y + self.character_rect.height // 2
+        character_pos = (
+            character_center_x - self.character_image.get_width() // 2,
+            character_center_y - self.character_image.get_height() // 2,
+        )
+        self.screen.blit(self.character_image, character_pos)
+
+    # Draw the dialog message centered and 50 pixels from the top
     def draw_dialog(self):
-        # draw character image and dialog message
-        # self.screen.blit(self.level.character, self.character_rect)
+        # Calculate the position of the character and dialog message
+        character_center_x = self.character_rect.x + self.character_rect.width // 2
+        character_center_y = self.character_rect.y + self.character_rect.height // 2
+        character_pos = (
+            character_center_x - self.character_image.get_width() // 2,
+            character_center_y - self.character_image.get_height() // 2,
+        )
 
+        dialog_text = self.dialog_font.render(
+            self.dialog_message, True, (255, 255, 255))
+        dialog_width = dialog_text.get_width()
+        dialog_height = dialog_text.get_height()
+        dialog_pos = (
+            character_center_x - dialog_width // 2,
+            50 + dialog_height // 2,  # Position dialog 50 pixels from the top
+        )
+
+        # Draw the character image and dialog message
         current_time = pygame.time.get_ticks()
         if current_time - self.last_blink_time >= self.blink_interval:
-            self.text_visible = not self.text_visible
+            self.heart_visible = not self.heart_visible
             self.last_blink_time = current_time
 
-        if self.text_visible:
-            dialog_text = self.dialog_font.render(
-                self.dialog_message, True, (255, 255, 255))
-            dialog_text.set_alpha(255)  # Set full opacity
-            dialog_rect = dialog_text.get_rect(
-                center=(self.dialog_x, self.dialog_y))
-            self.screen.blit(dialog_text, dialog_rect)
-        if current_time - self.shake_start_time < self.shake_duration:
-            shake_progress = (
-                current_time - self.shake_start_time) / self.shake_duration
-            shake_angle = shake_progress * 2 * math.pi
-            shake_offset_x = int(math.sin(shake_angle)
-                                 * self.shake_amplitude)
-            shake_offset_y = int(math.cos(shake_angle)
-                                 * self.shake_amplitude)
-            self.shake_offset = (shake_offset_x, shake_offset_y)
-        else:
-            self.shake_offset = (0, 0)
-
-        character_pos = (self.character_rect.x +
-                         self.shake_offset[0], self.character_rect.y + self.shake_offset[1])
-        self.screen.blit(self.level.character, character_pos)
+        if self.heart_visible:
+            self.screen.blit(self.character_image, character_pos)
+            self.screen.blit(dialog_text, dialog_pos)
 
     def show_help_screen(self):
-        help_text = [
-            "Welcome to ORTOGRAFIA",
-            "This is a game to improve your spelling",
-            "Press the numeric keys to change the words",
-            "Press Enter to select a word",
-            "If you select the correct word, you earn points",
-            "If you select the incorrect word, you lose a life",
-            "You lose the game if you run out of lives",
-            "Press Esc to exit the game",
-            "",
-            "Press any key to continue"
-        ]
+        help_image_path = "assets/inst.jpg"  # Replace with the path to your image
 
-        help_font = pygame.font.Font(self.font_file, 16)
+        help_image = pygame.image.load(help_image_path)
+        help_image_rect = help_image.get_rect()
+
         help_window_width = self.screen_width
         help_window_height = self.screen_height
         help_window_x = 0
@@ -206,12 +208,7 @@ class Game:
         help_window_surface.set_alpha(200)
         help_window_surface.fill((0, 0, 0))
 
-        for i in range(len(help_text)):
-            help_text_rendered = help_font.render(
-                help_text[i], True, (255, 255, 255))
-            help_text_rect = help_text_rendered.get_rect(
-                center=(help_window_width / 2, i * help_font.get_height() + help_font.get_height() / 2))
-            help_window_surface.blit(help_text_rendered, help_text_rect)
+        help_image_rect.center = help_window_rect.center
 
         help_window_open = True
         while help_window_open:
@@ -220,6 +217,7 @@ class Game:
                     help_window_open = False
 
             self.screen.blit(help_window_surface, help_window_rect)
+            self.screen.blit(help_image, help_image_rect)
             pygame.display.flip()
 
     def handle_events(self):
@@ -255,6 +253,7 @@ class Game:
         return True
 
     def run(self):
+        self.show_help_screen()
         running = True
         while running:
             running = self.handle_events()
