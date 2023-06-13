@@ -1,53 +1,71 @@
+import math
+import random
 import pygame
+import levels
+import settings
 
 
 class Game:
     def __init__(self, sw, sh):
         pygame.init()
         pygame.display.set_caption("ORTOGRAFIA")
+        # levels
+        self.levels = levels.levels
+        self.current_level = 0
+        self.level = self.levels[self.current_level]
+        self.words = self.level.words
+        # Randomize words
+        random.shuffle(self.words)
+        self.selected_word = 0
+        # Test settings
+        # self.dialog_offset = 0
+        # self.animation_speed = 2
+        # self.animation_offset = 0
+        self.text_visible = True
+
+        # global settings
         self.screen_width = sw
         self.screen_height = sh
         self.screen = pygame.display.set_mode(
             (self.screen_width, self.screen_height))
-        self.font_file = "assets/fonts/pixel.ttf"
-        self.font_game_size = 64
-        self.font_score_size = 32
+        self.font_file = settings.FONT_FILE
+        self.font_game_size = settings.FONT_GAME_SIZE
+        self.font_score_size = settings.FONT_SCORE_SIZE
         self.font_score = pygame.font.Font(
             self.font_file, self.font_score_size)
         self.font_game = pygame.font.Font(self.font_file, self.font_game_size)
-        self.background_image = pygame.image.load(
-            "assets/backrounds/bakeryBG.png")
-        self.background_image = pygame.transform.scale(
-            self.background_image, (self.screen_width, self.screen_height))
-        self.bar_color = (200, 200, 200)
-        self.heart_color = (255, 0, 0)
-        self.word_color = (0, 0, 0)
-        self.game_over_color = (255, 0, 0)
-        self.score = 30
+        self.bar_color = settings.COLOR_BAR
+        self.heart_color = settings.COLOR_HEART
+        self.word_color = settings.COLOR_WORD
+        self.game_over_color = settings.COLOR_GAME_OVER
+        # self.background_image = pygame.image.load(
+        #     "assets/backrounds/bakeryBG.png")
+        # self.background_image = pygame.transform.scale(
+        #     self.level.background_image, (self.screen_width, self.screen_height))
+        # game stats
+        self.score = self.level.score
         self.lives = 3
         # Words
-        self.words = ["Hay", "Ahi", "Ay!"]
-        self.offensive_gameover_words = ["Vuele a la escuela", "JA JA. No sabe escribir", "JAJAJA. No sabe escribir"]
-        self.selected_word = 1
+        # self.words = ["Hay", "Ahi", "Ay!"]
+        # self.offensive_gameover_words = ["Vuele a la escuela", "JA JA. No sabe escribir", "JAJAJA. No sabe escribir"]
+        # self.selected_word = 1
         self.selected_word_color = (255, 255, 255)
         self.selected_word_size = 76
         # Sounds
-        self.select_word_sound = pygame.mixer.Sound("assets/sounds/click.wav")
-        self.correct_word_sound = pygame.mixer.Sound(
-            "assets/sounds/correct.wav")
+        self.select_word_sound = pygame.mixer.Sound(settings.SOUND_CLICK)
+        self.correct_word_sound = pygame.mixer.Sound(settings.SOUND_CORRECT)
         self.incorrect_word_sound = pygame.mixer.Sound(
-            "assets/sounds/incorrect.wav")
-        self.game_over_sound = pygame.mixer.Sound(
-            "assets/sounds/game_over.wav")
+            settings.SOUND_INCORRECT)
+        self.game_over_sound = pygame.mixer.Sound(settings.SOUND_GAME_OVER)
         # Characters
-        self.character_image = pygame.image.load("baker.png")
+        self.character_image = self.level.character
         self.character_rect = self.character_image.get_rect(
             center=(self.screen_width/2, self.screen_height/2))
         # define the dialog message and its position
         self.dialog_font_size = 32
         self.dialog_font = pygame.font.Font(
             self.font_file, self.dialog_font_size)
-        self.dialog_message = "SI ? PAN!"
+        self.dialog_message = self.level.dialogue
         self.dialog_x = self.character_rect.centerx
         self.dialog_y = self.character_rect.bottom + 10
 
@@ -57,6 +75,34 @@ class Game:
         self.blink_interval = 500  # milliseconds
         self.last_blink_time = 0
         self.heart_visible = True
+        # Animation variables
+        self.shake_duration = 500  # milliseconds
+        self.shake_amplitude = 8
+        self.shake_start_time = 0
+        self.shake_offset = (0, 0)
+
+    def draw(self):
+        self.level.background_image = pygame.transform.scale(
+            self.level.background_image, (self.screen_width, self.screen_height))
+        # Add opacity to the background image
+        # self.level.background_image.set_alpha(0)
+        self.screen.blit(self.level.background_image, (0, 0))
+        self.draw_score()
+        self.draw_words()
+        self.draw_lives()
+        self.draw_dialog()
+        pygame.display.flip()
+
+    def change_level(self):
+        self.current_level += 1
+        if self.current_level >= len(self.levels):
+            self.current_level = 0
+        self.level = self.levels[self.current_level]
+        self.words = self.level.words
+        self.selected_word = 1
+        self.score = self.level.score + self.score
+        self.dialog_message = self.level.dialogue
+        self.character_image = self.level.character
 
     def draw_score(self):
         score_text = self.font_score.render(
@@ -69,90 +115,112 @@ class Game:
             self.screen.blit(self.heart_image, self.heart_rect)
 
     # Draw the three words at the bottom of the screen
+
     def draw_words(self):
-        word_spacing = 20
-        total_width = len(self.words[0]) * self.font_game_size + len(self.words[1]) * \
-            self.font_game_size + \
-            len(self.words[2]) * self.font_game_size + 2 * word_spacing
-        x = self.screen_width/2 - total_width/2
+        word_spacing = 12
+        max_word_width = max(len(word)
+                             for word in self.level.words) * self.font_game_size
+        max_total_width = self.screen_width - 2 * word_spacing
+        if max_word_width > max_total_width:
+            # Words exceed the available width, perform word wrapping
+            num_words_per_line = max_total_width // max_word_width
+            word_width = max_total_width // num_words_per_line - word_spacing
+        else:
+            num_words_per_line = len(self.level.words)
+            word_width = max_word_width
+
+        x = self.screen_width / 2 - \
+            (word_width * num_words_per_line +
+             word_spacing * (num_words_per_line - 1)) / 2
         y = self.screen_height - self.font_game_size - 20
-        for i in range(3):
-            word_text = self.font_game.render(
-                self.words[i], True, self.word_color)
+        for i, word in enumerate(self.level.words):
+            word_text = self.font_game.render(word, True, self.word_color)
             if self.selected_word == i:
                 word_text = self.font_game.render(
-                    self.words[i], True, self.selected_word_color)
+                    word, True, self.selected_word_color)
             self.screen.blit(word_text, (x, y))
-            x += len(self.words[i]) * self.selected_word_size + word_spacing
+            if (i + 1) % num_words_per_line == 0:
+                x = self.screen_width / 2 - \
+                    (word_width * num_words_per_line +
+                     word_spacing * (num_words_per_line - 1)) / 2
+                y -= self.font_game_size + 10
+            else:
+                x += word_width + word_spacing
 
     def draw_dialog(self):
         # draw character image and dialog message
-        self.screen.blit(self.character_image, self.character_rect)
-        dialog_text = self.dialog_font.render(
-            self.dialog_message, True, (255, 255, 255))
-        dialog_rect = dialog_text.get_rect(
-            center=(self.dialog_x, self.dialog_y))
-        self.screen.blit(dialog_text, dialog_rect)
-    def show_tutorial_window(self):
-        # Define tutorial message
-        tutorial_message = [
-            "Bienvenido a ORTOGRAFIA",
-            "Este es un juego para mejorar tu ortografia",
-            "Presiona las teclas num3ricas para cambiar las palabras",
-            "Presiona Enter para seleccionar una palabra",
-            "Si seleccionas la palabra correcta, ganas puntos",
-            "Si seleccionas la palabra incorrecta, pierdes una vida",
-            "Pierdes el juego si te quedas sin vidas",
-            "Presiona Esc para salir del juego",
+        # self.screen.blit(self.level.character, self.character_rect)
+
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_blink_time >= self.blink_interval:
+            self.text_visible = not self.text_visible
+            self.last_blink_time = current_time
+
+        if self.text_visible:
+            dialog_text = self.dialog_font.render(
+                self.dialog_message, True, (255, 255, 255))
+            dialog_text.set_alpha(255)  # Set full opacity
+            dialog_rect = dialog_text.get_rect(
+                center=(self.dialog_x, self.dialog_y))
+            self.screen.blit(dialog_text, dialog_rect)
+        if current_time - self.shake_start_time < self.shake_duration:
+            shake_progress = (
+                current_time - self.shake_start_time) / self.shake_duration
+            shake_angle = shake_progress * 2 * math.pi
+            shake_offset_x = int(math.sin(shake_angle)
+                                 * self.shake_amplitude)
+            shake_offset_y = int(math.cos(shake_angle)
+                                 * self.shake_amplitude)
+            self.shake_offset = (shake_offset_x, shake_offset_y)
+        else:
+            self.shake_offset = (0, 0)
+
+        character_pos = (self.character_rect.x +
+                         self.shake_offset[0], self.character_rect.y + self.shake_offset[1])
+        self.screen.blit(self.level.character, character_pos)
+
+    def show_help_screen(self):
+        help_text = [
+            "Welcome to ORTOGRAFIA",
+            "This is a game to improve your spelling",
+            "Press the numeric keys to change the words",
+            "Press Enter to select a word",
+            "If you select the correct word, you earn points",
+            "If you select the incorrect word, you lose a life",
+            "You lose the game if you run out of lives",
+            "Press Esc to exit the game",
             "",
-            "Presiona cualquier tecla para comenzar"
+            "Press any key to continue"
         ]
 
-        # Set up tutorial window
-        tutorial_font = pygame.font.Font(self.font_file, 16)
-        tutorial_window_width = 750
-        tutorial_window_height = len(tutorial_message) * tutorial_font.get_height()
-        tutorial_window_x = self.screen_width/2 - tutorial_window_width/2
-        tutorial_window_y = self.screen_height/2 - tutorial_window_height/2
-        tutorial_window_rect = pygame.Rect(
-            tutorial_window_x, tutorial_window_y, tutorial_window_width, tutorial_window_height)
+        help_font = pygame.font.Font(self.font_file, 16)
+        help_window_width = self.screen_width
+        help_window_height = self.screen_height
+        help_window_x = 0
+        help_window_y = 0
+        help_window_rect = pygame.Rect(
+            help_window_x, help_window_y, help_window_width, help_window_height)
 
-        # Draw tutorial window background
-        tutorial_window_surface = pygame.Surface(
-            (tutorial_window_width, tutorial_window_height))
-        tutorial_window_surface.set_alpha(200)
-        tutorial_window_surface.fill((0, 0, 0))
+        help_window_surface = pygame.Surface(
+            (help_window_width, help_window_height))
+        help_window_surface.set_alpha(200)
+        help_window_surface.fill((0, 0, 0))
 
-        # Draw tutorial message
-        for i in range(len(tutorial_message)):
-            tutorial_text = tutorial_font.render(
-                tutorial_message[i], True, (255, 255, 255))
-            tutorial_text_rect = tutorial_text.get_rect(
-                center=(tutorial_window_width/2, i*tutorial_font.get_height() + tutorial_font.get_height()/2))
-            tutorial_window_surface.blit(tutorial_text, tutorial_text_rect)
+        for i in range(len(help_text)):
+            help_text_rendered = help_font.render(
+                help_text[i], True, (255, 255, 255))
+            help_text_rect = help_text_rendered.get_rect(
+                center=(help_window_width / 2, i * help_font.get_height() + help_font.get_height() / 2))
+            help_window_surface.blit(help_text_rendered, help_text_rect)
 
-        # Show tutorial window until a key is pressed
-        tutorial_window_open = True
-        while tutorial_window_open:
+        help_window_open = True
+        while help_window_open:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                    tutorial_window_open = False
+                    help_window_open = False
 
-            # Draw tutorial window and update display
-            self.screen.blit(tutorial_window_surface, tutorial_window_rect)
+            self.screen.blit(help_window_surface, help_window_rect)
             pygame.display.flip()
-
-
-
-    def draw(self):
-
-        self.screen.blit(self.background_image, (0, 0))
-        self.draw_score()
-        self.draw_words()
-        self.draw_dialog()
-        self.draw_lives()
-        pygame.display.flip()
-
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -161,37 +229,28 @@ class Game:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     return False
-                elif event.key == pygame.K_1:
-                    self.selected_word = 0
-                    self.words[0] = "HAY"
+                elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    self.selected_word = (self.selected_word - 1) % 3
                     self.select_word_sound.play()
-                elif event.key == pygame.K_2:
-                    # self.show_tutorial_window()
-                    self.selected_word = 1
-                    self.words[1] = "AHI"
-                    self.select_word_sound.play()
+                elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    self.selected_word = (self.selected_word + 1) % 3
 
-                elif event.key == pygame.K_3:
-                    self.selected_word = 2
-                    self.words[2] = "AY!"
                     self.select_word_sound.play()
                 elif event.key == pygame.K_RETURN:
-                    if self.selected_word == 0 and self.words[0] == "HAY":
-                        self.correct_word_sound.play()
+                    if self.level.words[self.selected_word] == self.level.correct_word:
                         self.score += 10
+                        self.correct_word_sound.play()
+                        # self.dialog_message = "CORRECTO!"
 
-                    elif self.selected_word == 1 and self.words[1] == "AHI":
-                        self.incorrect_word_sound.play()
-                        self.lives -= 1
-                        self.score -= 10
-
-                    elif self.selected_word == 2 and self.words[2] == "AY!":
-                        self.incorrect_word_sound.play()
-                        self.lives -= 1
-                        self.score -= 10
-
+                        self.change_level()
                     else:
                         self.lives -= 1
+                        self.incorrect_word_sound.play()
+                        self.shake_start_time = pygame.time.get_ticks()  # Start the shake animation
+                        # self.dialog_message = "INCORRECTO!"
+                    self.selected_word = 0
+                elif event.key == pygame.K_h:
+                    self.show_help_screen()
 
         return True
 
@@ -221,5 +280,7 @@ class Game:
                 pygame.time.wait(3000)
                 running = False
         pygame.quit()
+
+
 game = Game(800, 600)
 game.run()

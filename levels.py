@@ -1,63 +1,50 @@
+import pygame
 import level
 
 levels = [
     level.Level(
         background_image_path="assets/backrounds/level1.png",
+        character=pygame.image.load("baker.png"),
         words=["Hay", "Ahi", "Ay!"],
-        correct_word_index=0
+        correct_word="Hay",
+        dialogue="Si ? pan"
     ),
     level.Level(
         background_image_path="assets/backrounds/level2.jpg",
+        character=pygame.image.load("assets/backrounds/sac.png"),
         words=["Valla", "Vaya", "Baya"],
-        correct_word_index=1
-        # Mijito vaya a la tienda
+        dialogue="Mijo ? a comprar a la tienda",
+        correct_word="Vaya"
     ),
     level.Level(
-        background_image_path="assets/backrounds/level3.jpg",
-        words=["Haber", "A ver", "Haber"],
-        correct_word_index=1
-        # A ver si te atreves
+        background_image_path="assets/backrounds/default.jpg",
+        character=pygame.image.load("assets/backrounds/sac.png"),
+        words=["Haber", "A ver", "Haver"],
+        dialogue="? si te atreves",
+        correct_word="A ver"
     ),
-    # level.Level(
-    #     background_image_path="assets/backrounds/level2.jpg",
-    #     words=["IVA", "Iba", "Hiba"],
-    #     correct_word_index=1
-    #     # Ayer iba a la tienda
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level2.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level3.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level4.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level5.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level6.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level7.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level8.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level9.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
-    # level.Level(
-    #     background_image_path="assets/images/backgrounds/level10.png",
-    #     words=["Hay", "Ahi", "Ay!"]
-    # ),
+    level.Level(
+        background_image_path="assets/backrounds/default.jpg",
+        character=pygame.image.load("assets/backrounds/sac.png"),
+        words=["Zumo", "Sumo", "Szumo"],
+        correct_word = "Zumo",
+        dialogue="El sacerdote se bebió el ? sagrado"
+    ),
+    level.Level(
+        background_image_path="assets/backrounds/default.jpg",
+        character=pygame.image.load("assets/backrounds/sac.png"),
+        words=["Bello", "Vello", "Beyo"],
+        correct_word = "Bello",
+        dialogue="Me leyó el poema mas ? que escuché en la vida"
+    ),
+    level.Level(
+        background_image_path="assets/backrounds/hostia.png",
+        character=pygame.image.load("assets/characters/ch_hostia.png"),
+        words=["Hostia", "Ostia", "Ostea"],
+        correct_word = "Hostia",
+        dialogue="El sacerdote repartió la ? durante la misa"
+    ),
+
+
+
 ]

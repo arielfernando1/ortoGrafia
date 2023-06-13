@@ -3,7 +3,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
 # Font settings
-FONT_FILE = "assets/fonts/pixel.ttf"
+FONT_FILE = "assets/fonts/Geologica-Bold.ttf"
 FONT_GAME_SIZE = 38
 FONT_SCORE_SIZE = 32
 
@@ -22,3 +22,9 @@ SOUND_GAME_OVER = "assets/sounds/game_over.wav"
 # Image files
 IMAGE_BAKER = "baker.png"
 IMAGE_HEART = "assets/backrounds/heart.png"
+
+# Animation settings
+SHAKE_DURATION = 500
+SHAKE_AMPLITUDE = 10
+SHAKE_START_TIME = 0.0
+SHAKE_OFFSET = (0, 0)
