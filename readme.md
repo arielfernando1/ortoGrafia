@@ -6,3 +6,4 @@ This is a game made using pygame. It is a simple ortograhy game where you have t
 pip install -r requirements.txt
 python main.py
 ```
+# Test
