@@ -1,17 +1,14 @@
-import math
 import random
 import pygame
 import levels
 import settings
-
-
 class Game:
     def __init__(self, sw, sh):
         pygame.init()
-        pygame.display.set_caption("ORTOGRAFIA")
+        pygame.display.set_caption("Test")
         # levels
         self.levels = levels.levels
-        self.current_level = 0
+        self.current_level = random.randint(0, len(self.levels) - 1)
         self.level = self.levels[self.current_level]
         self.words = self.level.words
         # Randomize words
@@ -90,10 +87,14 @@ class Game:
         pygame.display.flip()
 
     def change_level(self):
-        self.current_level += 1
-        if self.current_level >= len(self.levels):
-            self.current_level = 0
-        self.level = self.levels[self.current_level]
+        # Complete current level
+        self.level.is_complete = True
+        self.current_level = self.levels.index(self.level)
+        print("Level " + str(self.current_level) + " completed")
+        self.levels = [level for level in self.levels if not level.is_complete]
+        # Get current level index
+        random_index = random.randint(0, len(self.levels) - 1)
+        self.level = self.levels[random_index]
         self.words = self.level.words
         self.selected_word = 1
         self.score = self.level.score + self.score
@@ -121,36 +122,32 @@ class Game:
     # Draw the three words at the bottom of the screen
 
     def draw_words(self):
-        word_spacing = 12
-        max_word_width = max(len(word)
-                             for word in self.level.words) * self.font_game_size
+        word_spacing = 5
+        max_word_width = max(len(word) * self.font_game_size for word in self.level.words)
         max_total_width = self.screen_width - 2 * word_spacing
         if max_word_width > max_total_width:
             # Words exceed the available width, perform word wrapping
-            num_words_per_line = max_total_width // max_word_width
+            num_words_per_line = max_total_width // (max_word_width + word_spacing)
             word_width = max_total_width // num_words_per_line - word_spacing
         else:
             num_words_per_line = len(self.level.words)
             word_width = max_word_width
 
-        x = self.screen_width / 2 - \
-            (word_width * num_words_per_line +
-             word_spacing * (num_words_per_line - 1)) / 2
+        x = self.screen_width / 2 - ((word_width + word_spacing) * num_words_per_line - word_spacing) / 2
         y = self.screen_height - self.font_game_size - 20
         for i, word in enumerate(self.level.words):
             word_text = self.font_game.render(word, True, self.word_color)
             if self.selected_word == i:
-                word_text = self.font_game.render(
-                    word, True, self.selected_word_color)
+                word_text = self.font_game.render(word, True, self.selected_word_color)
             self.screen.blit(word_text, (x, y))
             if (i + 1) % num_words_per_line == 0:
-                x = self.screen_width / 2 - \
-                    (word_width * num_words_per_line +
-                     word_spacing * (num_words_per_line - 1)) / 2
+                x = self.screen_width / 2 - ((word_width + word_spacing) * num_words_per_line - word_spacing) / 2
                 y -= self.font_game_size + 10
             else:
                 x += word_width + word_spacing
-# Draw the character image at the center of the screen
+
+
+
 
     def draw_character(self):
         character_center_x = self.character_rect.x + self.character_rect.width // 2

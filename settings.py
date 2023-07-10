@@ -4,7 +4,7 @@ SCREEN_HEIGHT = 600
 
 # Font settings
 FONT_FILE = "assets/fonts/Geologica-Bold.ttf"
-FONT_GAME_SIZE = 38
+FONT_GAME_SIZE = 24
 FONT_SCORE_SIZE = 32
 
 # Colors

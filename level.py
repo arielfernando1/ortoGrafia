@@ -7,3 +7,4 @@ class Level:
         self.score = 10
         self.dialogue = dialogue
         self.character = character
+        self.is_complete = False
