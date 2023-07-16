@@ -1,25 +1,40 @@
+import math
 import random
 import pygame
+import pygame_menu
 import levels
 import settings
+import thorpy as tp
+
+
 class Game:
     def __init__(self, sw, sh):
         pygame.init()
-        pygame.display.set_caption("Test")
+        pygame.display.set_caption("ORTOGRAFIA")
+        pygame.mouse.set_cursor(*pygame.cursors.broken_x)
         # levels
         self.levels = levels.levels
-        self.current_level = random.randint(0, len(self.levels) - 1)
+        self.current_level = 0
         self.level = self.levels[self.current_level]
         self.words = self.level.words
+        self.level_time = 10
         # Randomize words
         random.shuffle(self.words)
         self.selected_word = 0
         self.text_visible = True
-        # global settings
+        # Buttons
+        # screen settings
         self.screen_width = sw
         self.screen_height = sh
         self.screen = pygame.display.set_mode(
             (self.screen_width, self.screen_height))
+        tp.init(self.screen,tp.theme_classic)
+        # Others
+        # button = tp.Button("Hello world")
+        # ui_elements = tp.Group([button])
+        # self.updater = ui_elements.get_updater()
+        
+        # font settings
         self.font_file = settings.FONT_FILE
         self.font_game_size = settings.FONT_GAME_SIZE
         self.font_score_size = settings.FONT_SCORE_SIZE
@@ -30,30 +45,24 @@ class Game:
         self.heart_color = settings.COLOR_HEART
         self.word_color = settings.COLOR_WORD
         self.game_over_color = settings.COLOR_GAME_OVER
-        # self.background_image = pygame.image.load(
-        #     "assets/backrounds/bakeryBG.png")
-        # self.background_image = pygame.transform.scale(
-        #     self.level.background_image, (self.screen_width, self.screen_height))
-        # game stats
+        self.menu = pygame_menu.Menu(
+            'Game', sw, sh, theme=pygame_menu.themes.THEME_DARK)
+        self.menu.add.button('Jugar', self.start_game)
+        self.menu.add.button('Ayuda', self.show_help_screen)
+        self.menu.add.button('Salir', pygame_menu.events.EXIT)
+        
         self.score = self.level.score
         self.lives = 3
-        # Words
-        # self.words = ["Hay", "Ahi", "Ay!"]
-        # self.offensive_gameover_words = ["Vuele a la escuela", "JA JA. No sabe escribir", "JAJAJA. No sabe escribir"]
-        # self.selected_word = 1
         self.selected_word_color = (255, 255, 255)
         self.selected_word_size = 76
-        # Sounds
         self.select_word_sound = pygame.mixer.Sound(settings.SOUND_CLICK)
         self.correct_word_sound = pygame.mixer.Sound(settings.SOUND_CORRECT)
         self.incorrect_word_sound = pygame.mixer.Sound(
             settings.SOUND_INCORRECT)
         self.game_over_sound = pygame.mixer.Sound(settings.SOUND_GAME_OVER)
-        # Characters
         self.character_image = self.level.character
         self.character_rect = self.character_image.get_rect(
             center=(self.screen_width/2, self.screen_height/2))
-        # define the dialog message and its position
         self.dialog_font_size = 32
         self.dialog_font = pygame.font.Font(
             self.font_file, self.dialog_font_size)
@@ -64,7 +73,7 @@ class Game:
         self.heart_image = pygame.image.load("assets/backrounds/heart.png")
         self.heart_image = pygame.transform.scale(self.heart_image, (50, 50))
         self.heart_rect = self.heart_image.get_rect()
-        self.blink_interval = 500  # milliseconds
+        self.blink_interval = 1000  # milliseconds
         self.last_blink_time = 0
         self.heart_visible = True
         # Animation variables
@@ -78,22 +87,34 @@ class Game:
             self.level.background_image, (self.screen_width, self.screen_height))
         self.screen.blit(self.level.background_image, (0, 0))
         self.draw_bottom_bar()
-        # self.draw_top_bar()
         self.draw_score()
+        self.draw_timer()
         self.draw_words()
         self.draw_lives()
         self.draw_dialog()
         self.draw_character()
+        # self.updater.update()
         pygame.display.flip()
 
+    def start_game(self):
+        self.score = 0
+        self.lives = 1
+        self.level_time = 10
+        self.change_level()
+        self.run()
+
+    def show_menu(self):
+        self.menu.mainloop(self.screen)
+
     def change_level(self):
-        # Complete current level
         self.level.is_complete = True
         self.current_level = self.levels.index(self.level)
         print("Level " + str(self.current_level) + " completed")
-        self.levels = [level for level in self.levels if not level.is_complete]
-        # Get current level index
-        random_index = random.randint(0, len(self.levels) - 1)
+        print(str(len(self.levels)) + " levels remaining")
+        self.levels = [level for level in self.levels if not level.is_complete] 
+        if len(self.levels) == 0:
+            print("Game completed")
+        random_index = random.randint(0, len(self.levels)-1)    
         self.level = self.levels[random_index]
         self.words = self.level.words
         self.selected_word = 1
@@ -105,6 +126,9 @@ class Game:
         score_text = self.font_score.render(
             "Puntaje: " + str(self.score), True, (255, 255, 255))
         self.screen.blit(score_text, (10, 35 - score_text.get_height()/2))
+        
+    # def draw_time_bar(self):
+        
 
     def draw_top_bar(self):
         pygame.draw.rect(self.screen, self.bar_color, pygame.Rect(
@@ -114,6 +138,13 @@ class Game:
         pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(
             0, self.screen_height - 80, self.screen_width, 80))
 
+    # draw countdown timer
+    def draw_timer(self):
+        timer_text = self.font_score.render(
+            str(self.level_time), True, (255, 255, 255))
+        self.screen.blit(timer_text, (self.screen_width -
+                         (self.screen_width/2), 35 - timer_text.get_height()/2))
+
     def draw_lives(self):
         for i in range(self.lives):
             self.heart_rect.x = self.screen_width - 60 - i * 60
@@ -122,32 +153,36 @@ class Game:
     # Draw the three words at the bottom of the screen
 
     def draw_words(self):
-        word_spacing = 5
-        max_word_width = max(len(word) * self.font_game_size for word in self.level.words)
+        word_spacing = 12
+        max_word_width = max(len(word)
+                             for word in self.level.words) * self.font_game_size
         max_total_width = self.screen_width - 2 * word_spacing
         if max_word_width > max_total_width:
             # Words exceed the available width, perform word wrapping
-            num_words_per_line = max_total_width // (max_word_width + word_spacing)
+            num_words_per_line = max_total_width // max_word_width
             word_width = max_total_width // num_words_per_line - word_spacing
         else:
             num_words_per_line = len(self.level.words)
             word_width = max_word_width
 
-        x = self.screen_width / 2 - ((word_width + word_spacing) * num_words_per_line - word_spacing) / 2
+        x = self.screen_width / 2 - \
+            (word_width * num_words_per_line +
+             word_spacing * (num_words_per_line - 1)) / 2
         y = self.screen_height - self.font_game_size - 20
         for i, word in enumerate(self.level.words):
             word_text = self.font_game.render(word, True, self.word_color)
             if self.selected_word == i:
-                word_text = self.font_game.render(word, True, self.selected_word_color)
+                word_text = self.font_game.render(
+                    word, True, self.selected_word_color)
             self.screen.blit(word_text, (x, y))
             if (i + 1) % num_words_per_line == 0:
-                x = self.screen_width / 2 - ((word_width + word_spacing) * num_words_per_line - word_spacing) / 2
+                x = self.screen_width / 2 - \
+                    (word_width * num_words_per_line +
+                     word_spacing * (num_words_per_line - 1)) / 2
                 y -= self.font_game_size + 10
             else:
                 x += word_width + word_spacing
-
-
-
+# Draw the character image at the center of the screen
 
     def draw_character(self):
         character_center_x = self.character_rect.x + self.character_rect.width // 2
@@ -176,12 +211,10 @@ class Game:
             character_center_x - dialog_width // 2,
             50 + dialog_height // 2,  # Position dialog 50 pixels from the top
         )
-
-        # Draw the character image and dialog message
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_blink_time >= self.blink_interval:
-            self.heart_visible = not self.heart_visible
-            self.last_blink_time = current_time
+        # current_time = pygame.time.get_ticks()
+        # if current_time - self.last_blink_time >= self.blink_interval:
+        #     self.heart_visible = not self.heart_visible
+        #     self.last_blink_time = current_time
 
         if self.heart_visible:
             self.screen.blit(self.character_image, character_pos)
@@ -217,44 +250,101 @@ class Game:
             self.screen.blit(help_image, help_image_rect)
             pygame.display.flip()
 
+    def handle_word_click(self, word_index):
+        if self.level.words[word_index] == self.level.correct_word:
+            self.score += 10
+            self.correct_word_sound.play()
+            self.change_level()
+        else:
+            self.lives -= 1
+            self.incorrect_word_sound.play()
+            self.selected_word = 0
+
     def handle_events(self):
+        event_actions = {
+            pygame.QUIT: self.quit_game,
+            pygame.KEYDOWN: {
+                pygame.K_ESCAPE: self.show_menu,
+                pygame.K_LEFT: lambda: self.update_selected_word(-1),
+                pygame.K_a: lambda: self.update_selected_word(-1),
+                pygame.K_RIGHT: lambda: self.update_selected_word(1),
+                pygame.K_d: lambda: self.update_selected_word(1),
+                pygame.K_RETURN: self.check_selected_word,
+                pygame.K_h: self.show_help_screen
+            },
+            pygame.MOUSEBUTTONDOWN: {
+                1: lambda: print("Left key pressed"),
+                0: lambda: print("Middle key pressed")
+            }
+        }
+
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    return False
-                elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    self.selected_word = (self.selected_word - 1) % 3
-                    self.select_word_sound.play()
-                elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    self.selected_word = (self.selected_word + 1) % 3
+            event_type = event.type
+            event_key = None
 
-                    self.select_word_sound.play()
-                elif event.key == pygame.K_RETURN:
-                    if self.level.words[self.selected_word] == self.level.correct_word:
-                        self.score += 10
-                        self.correct_word_sound.play()
-                        # self.dialog_message = "CORRECTO!"
+            if event_type == pygame.KEYDOWN:
+                event_key = event.key
+            elif event_type == pygame.MOUSEBUTTONDOWN:
+                event_key = event.button
+            action = event_actions.get(event_type)
 
-                        self.change_level()
-                    else:
-                        self.lives -= 1
-                        self.incorrect_word_sound.play()
-                        self.shake_start_time = pygame.time.get_ticks()  # Start the shake animation
-                        # self.dialog_message = "INCORRECTO!"
-                    self.selected_word = 0
-                elif event.key == pygame.K_h:
-                    self.show_help_screen()
+            if action:
+                if isinstance(action, dict):
+                    action = action.get(event_key)
+                    if action:
+                        action()
+                else:
+                    action()
 
         return True
 
+    def quit_game(self):
+        return False
+
+    def update_selected_word(self, increment):
+        self.selected_word = (self.selected_word + increment) % 3
+        self.select_word_sound.play()
+
+    def check_selected_word(self):
+        if self.level.words[self.selected_word] == self.level.correct_word:
+            self.correct_word_sound.play()
+            self.score += 10
+            self.level_time = 10
+            self.draw()
+            # mark current level as completed
+            self.level.is_completed = True
+            pygame.time.delay(1000)
+            self.change_level()
+
+        else:
+            self.incorrect_word_sound.play()
+            self.score -= 10
+            self.level_time = 10
+            self.lives -= 1
+            self.draw()
+            pygame.time.delay(1000)
+            self.change_level()
+        self.selected_word = 0
+
+    def show_menu_screen(self):
+        return False
+
     def run(self):
-        self.show_help_screen()
         running = True
         while running:
             running = self.handle_events()
             self.draw()
+            current_time = pygame.time.get_ticks()
+         
+            if current_time - self.last_blink_time >= self.blink_interval:
+                self.level_time -= 1
+                # self.incorrect_word_sound.play()
+                if self.level_time <= 0:
+                    self.lives -= 1
+                    self.change_level()
+                    self.level_time = 10
+                self.last_blink_time = current_time
+
             if self.score <= 0:
                 self.game_over_sound.play()
                 game_over_text = self.font_game.render(
@@ -267,14 +357,22 @@ class Game:
                 running = False
             if self.lives <= 0:
                 self.game_over_sound.play()
-                game_over_text = self.font_game.render(
-                    "PERDISTE!", True, self.game_over_color)
-                game_over_rect = game_over_text.get_rect(
-                    center=(self.screen_width/2, self.screen_height/2))
-                self.screen.blit(game_over_text, game_over_rect)
-                pygame.display.flip()
+                # game_over_text = self.font_game.render(
+                #     "PERDISTE!", True, self.game_over_color)
+                # game_over_rect = game_over_text.get_rect(
+                #     center=(self.screen_width/2, self.screen_height/2))
+                # self.screen.blit(game_over_text, game_over_rect)
+                # pygame.display.flip()
                 pygame.time.wait(3000)
-                running = False
+                title = "Perdiste :("
+                message = "¿Quieres jugar de nuevo?"
+                choice = tp.AlertWithChoices(title, ("Nuevo juego","Salir"), message)
+                choice.launch_alone()
+                if choice.get_value() == "Nuevo juego":
+                    self.lives = 3
+                    print("Nuevo juego")
+                else:
+                    running = False
         pygame.quit()
 
 
