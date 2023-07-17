@@ -107,13 +107,13 @@ levels = [
         correct_word = "Eclipse",
         dialogue="Anoche hubo un ? lunar"
     ),
-    #     level.Level(
-    #     background_image_path="assets/backrounds/clases.png",
-    #     character=pygame.image.load("assets/characters/llanas01.png"),
-    #     words=["Agudas", "Llanas", "Esdrújulas"],
-    #     correct_word="LLanas",
-    #     dialogue="Las palabras que se acentúan cuando terminan en consonante que  no sea'N' ni'S' son: "
-    # ),
+        level.Level(
+        background_image_path="assets/backrounds/clases.png",
+        character=pygame.image.load("assets/characters/llanas01.png"),
+        words=["Agudas", "Llanas", "Esdrújulas"],
+        correct_word="LLanas",
+        dialogue="Las palabras que se acentúan cuando terminan en consonante que  no sea'N' ni'S' son: "
+    ),
     level.Level(
         background_image_path="assets/backrounds/animo.png",
         character=pygame.image.load("assets/characters/animo01.png"),
@@ -121,20 +121,20 @@ levels = [
         dialogue="'Ánimo' es una palabra:",
         correct_word="Esdrújula"
     ),
-    # level.Level(
-    #     background_image_path="assets/backrounds/complemento.png",
-    #     character=pygame.image.load("assets/characters/complemento01.png"),
-    #     words=["Directo", "Indirecto", "Agente"],
-    #     dialogue="¿Qué complemento verbal se puede sustituir por los pronombres 'lo, la, los, las'?",
-    #     correct_word="Complemento Directo"
-    # ),
-    # level.Level(
-    #     background_image_path="assets/backrounds/paco.png",
-    #     character=pygame.image.load("assets/characters/paco01.png"),
-    #     words=["Ayer", "A Maria", "Flores"],
-    #     dialogue="¿Cuál es el 'Complemento Directo' en esta frase? - Paco regaló flores a María ayer.", 
-    #     correct_word="Flores"
-    # ),
+    level.Level(
+        background_image_path="assets/backrounds/complemento.png",
+        character=pygame.image.load("assets/characters/complemento01.png"),
+        words=["Directo", "Indirecto", "Agente"],
+        dialogue="¿Qué complemento verbal se puede sustituir por los pronombres 'lo, la, los, las'?",
+        correct_word="Complemento Directo"
+    ),
+    level.Level(
+        background_image_path="assets/backrounds/paco.png",
+        character=pygame.image.load("assets/characters/paco01.png"),
+        words=["Ayer", "A Maria", "Flores"],
+        dialogue="¿Cuál es el 'Complemento Directo' en esta frase? - Paco regaló flores a María ayer.", 
+        correct_word="Flores"
+    ),
 
     level.Level(
         background_image_path="assets/backrounds/verdad.png",
