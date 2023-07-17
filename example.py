@@ -1,10 +1,18 @@
 """
-We show here how to declare a text input field.
+Rich text allows you to define a tag that can be used inside strings to modify the text of gui's
+elements.
 
-In order to demonstrate how it locks other elements at focus, we declare dummy
-buttons along with the actual text input.
+Text properties that can be modified using tags :
+    * Color
+Text properties that cannot be modified using tags :
+    * Font family
+    * Font size
+Text properties that are modified at the element level :
+    * Text-align
+    * Max text width
 
-Just comment out the numerous customization parameters to try different options.
+To mix font families or font sizes, you should rather consider to wrap your elements into a parent
+that sorts its elements horizontally.
 """
 
 import pygame
@@ -12,35 +20,39 @@ import thorpy as tp
 
 pygame.init()
 
-screen = pygame.display.set_mode((1200,780))
-tp.init(screen, tp.themes.theme_game1)
-text_input = tp.TextInput("", placeholder="Type text here") #create an empty text field
-## *** Customization parameters *** ############################################
-# text_input.set_size((100,None)) #set the width of the text field, with auto height
-# text_input.placeholder_color = (100,100,100) #font color of the placeholder
-# text_input.stop_if_too_large = True #forbid user to add text if text is larger than width
-# text_input.max_length = 3 #set the max number of chars
-# text_input.adapt_size_if_too_large = False #Be careful if stop_if_too_large is also False...
-# text_input.max_size_if_too_large = 200 #set an upper limit for width, in case it becomes larger
-# text_input.adapt_parent_if_too_large = False #should parent size adapt also ?
-# text_input.keys_validate.append(pygame.K_TAB) #by default, only way to validate input is K_RETURN
-# text_input.set_only_numbers() #accept only numbers, including float
-# text_input.set_only_integers() #accept only integers
-# text_input.set_only_alpha() #accept only alphabetic chars
-# text_input.accept_char = lambda x:x=="a" or x=="b"  #custom accept function
-# text_input.bck_func = ... #indicate here potential bck function to execute when focus in put on text input
-# def dummy_validation():
-#    print("Setting the value of the first button to demonstrate how it works.")
-#    list_of_elements[0].set_text(text_input.get_value())
-# text_input.on_validation = dummy_validation
+W, H = 1200, 700
+screen = pygame.display.set_mode((W,H))
+bck = pygame.image.load(tp.fn("data/bck.jpg"))
+bck = pygame.transform.smoothscale(bck, (W,H)) #load some background pic
+def before_gui(): #add here the things to do before blitting gui elements
+    screen.blit(bck, (0,0)) #blit background pic
 
-#create dummy buttons just to see how text input focus make them lock
-list_of_elements = [tp.Button("Dummy button "+str(i)) for i in range(4)]
-list_of_elements.insert(2,text_input) #add text_input to the elements
-box = tp.Box(list_of_elements)
-box.center_on(screen)
-#For the sake of brevity, the main loop is replaced here by a shorter but blackbox-like method
-loop = box.get_updater()
-##text_input.toggle_focus() #put the focus on the input at the beginning
-loop.launch()
+tp.init(screen, tp.theme_classic)
+
+some_long_text = """Hello, world.
+This is a #RGB(255,0,0)rich# text that should #RGB(0,0,255)automatically be cut# in several lines.
+I repeat, this is a rich text that should automatically be cut in several lines."""
+
+#let's replace the \n inserted in the str above. Note that you can manually place line breaks, but
+#   we do remove them here as we want to illustrate auto line break only, for pedagogic purpose.
+some_long_text = some_long_text.replace("\n", " ")
+
+my_button = tp.Button(some_long_text, generate_surfaces=False)
+my_button.set_font_auto_multilines_width(300, refresh=False)
+#Arbitrarily choosing '#' as the tag here, but you are free to set whatever you like.
+my_button.set_font_rich_text_tag("#") #setting a tag automatically enable rich text (disabled by default)
+my_button.set_style_attr("font_align", "r") #font_align is either 'l', 'r' or 'c' (left, right and center)
+my_button.center_on(screen)
+
+
+m = tp.Loop(element=my_button)
+clock = pygame.time.Clock()
+while m.playing:
+    clock.tick(m.fps)
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
+            m.playing = False
+    m.update(before_gui)
+    pygame.display.flip()
+
 pygame.quit()

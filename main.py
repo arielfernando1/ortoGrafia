@@ -48,9 +48,9 @@ class Game:
         self.game_over_color = settings.COLOR_GAME_OVER
         #Pygame menu
         self.menu = pygame_menu.Menu(
-            'Game', 400, 400, theme=pygame_menu.themes.THEME_DARK)
-        self.menu.add.text_input('Nombre: ', default='Jugador')
-        self.menu.add.selector('Dificultad: ', [('Fácil', 1), ('Difícil', 3)], onchange=self.set_difficulty())
+            'Game', sw, sh, theme=pygame_menu.themes.THEME_DARK)
+        # self.menu.add.text_input('Nombre: ', default='Jugador')
+        # self.menu.add.selector('Dificultad: ', [('Fácil', 1), ('Difícil', 3)], onchange=self.set_difficulty())
         self.menu.add.button('Jugar', self.start_game)
         self.menu.add.button('Ayuda', self.show_help_screen)
         self.menu.add.button('Salir', pygame_menu.events.EXIT)
@@ -102,6 +102,7 @@ class Game:
         pygame.display.flip()
         
     def set_difficulty(self):
+        # Get selected difficulty
         pass
         
     def start_game(self):
