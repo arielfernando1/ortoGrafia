@@ -10,7 +10,7 @@ import thorpy as tp
 class Game:
     def __init__(self, sw, sh):
         pygame.init()
-        pygame.display.set_caption("ORTOGRAFIA")
+        pygame.display.set_caption("Test")
         pygame.mouse.set_cursor(*pygame.cursors.broken_x)
         # levels
         self.levels = levels.levels
@@ -22,6 +22,7 @@ class Game:
         random.shuffle(self.words)
         self.selected_word = 0
         self.text_visible = True
+        # self.screen = MyMenu(800, 600)
         # Buttons
         # screen settings
         self.screen_width = sw
@@ -45,8 +46,11 @@ class Game:
         self.heart_color = settings.COLOR_HEART
         self.word_color = settings.COLOR_WORD
         self.game_over_color = settings.COLOR_GAME_OVER
+        #Pygame menu
         self.menu = pygame_menu.Menu(
-            'Game', sw, sh, theme=pygame_menu.themes.THEME_DARK)
+            'Game', 400, 400, theme=pygame_menu.themes.THEME_DARK)
+        self.menu.add.text_input('Nombre: ', default='Jugador')
+        self.menu.add.selector('Dificultad: ', [('Fácil', 1), ('Difícil', 3)], onchange=self.set_difficulty())
         self.menu.add.button('Jugar', self.start_game)
         self.menu.add.button('Ayuda', self.show_help_screen)
         self.menu.add.button('Salir', pygame_menu.events.EXIT)
@@ -93,16 +97,23 @@ class Game:
         self.draw_lives()
         self.draw_dialog()
         self.draw_character()
+        # self.screen.draw()
         # self.updater.update()
         pygame.display.flip()
-
+        
+    def set_difficulty(self):
+        pass
+        
     def start_game(self):
         self.score = 0
         self.lives = 1
         self.level_time = 10
         self.change_level()
         self.run()
-
+        tp_input = tp.TextInput("Enter your name: ", placeholder="Name")
+        tp_input.launch_alone()
+        
+        
     def show_menu(self):
         self.menu.mainloop(self.screen)
 

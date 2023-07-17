@@ -14,7 +14,6 @@ pygame.init()
 
 screen = pygame.display.set_mode((1200,780))
 tp.init(screen, tp.themes.theme_game1)
-
 text_input = tp.TextInput("", placeholder="Type text here") #create an empty text field
 ## *** Customization parameters *** ############################################
 # text_input.set_size((100,None)) #set the width of the text field, with auto height
