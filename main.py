@@ -61,6 +61,7 @@ class Game:
         self.selected_word_size = 76
         self.select_word_sound = pygame.mixer.Sound(settings.SOUND_CLICK)
         self.correct_word_sound = pygame.mixer.Sound(settings.SOUND_CORRECT)
+        self.tick_sound = pygame.mixer.Sound(settings.SOUND_TICK)
         self.incorrect_word_sound = pygame.mixer.Sound(
             settings.SOUND_INCORRECT)
         self.game_over_sound = pygame.mixer.Sound(settings.SOUND_GAME_OVER)
@@ -68,8 +69,11 @@ class Game:
         self.character_rect = self.character_image.get_rect(
             center=(self.screen_width/2, self.screen_height/2))
         self.dialog_font_size = 32
+        self.alternative_font_size = 16
         self.dialog_font = pygame.font.Font(
             self.font_file, self.dialog_font_size)
+        self.alternative_font = pygame.font.Font(
+            self.font_file, self.alternative_font_size)
         self.dialog_message = self.level.dialogue
         self.dialog_x = self.character_rect.centerx
         self.dialog_y = self.character_rect.bottom + 10
@@ -90,6 +94,7 @@ class Game:
         self.level.background_image = pygame.transform.scale(
             self.level.background_image, (self.screen_width, self.screen_height))
         self.screen.blit(self.level.background_image, (0, 0))
+        self.draw_top_bar()
         self.draw_bottom_bar()
         self.draw_score()
         self.draw_timer()
@@ -144,11 +149,11 @@ class Game:
 
     def draw_top_bar(self):
         pygame.draw.rect(self.screen, self.bar_color, pygame.Rect(
-            0, 0, self.screen_width, 80))
+            0, 0, self.screen_width, 60))
 
     def draw_bottom_bar(self):
         pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(
-            0, self.screen_height - 80, self.screen_width, 80))
+            0, self.screen_height - 150, self.screen_width, 150))
 
     # draw countdown timer
     def draw_timer(self):
@@ -161,6 +166,8 @@ class Game:
         for i in range(self.lives):
             self.heart_rect.x = self.screen_width - 60 - i * 60
             self.screen.blit(self.heart_image, self.heart_rect)
+            if self.lives == 0:
+                self.screen.blit(self.heart_image, self.heart_rect)
 
     # Draw the three words at the bottom of the screen
 
@@ -194,7 +201,7 @@ class Game:
                 y -= self.font_game_size + 10
             else:
                 x += word_width + word_spacing
-# Draw the character image at the center of the screen
+                
 
     def draw_character(self):
         character_center_x = self.character_rect.x + self.character_rect.width // 2
@@ -205,32 +212,68 @@ class Game:
         )
         self.screen.blit(self.character_image, character_pos)
 
-    # Draw the dialog message centered and 50 pixels from the top
     def draw_dialog(self):
-        # Calculate the position of the character and dialog message
-        character_center_x = self.character_rect.x + self.character_rect.width // 2
-        character_center_y = self.character_rect.y + self.character_rect.height // 2
-        character_pos = (
-            character_center_x - self.character_image.get_width() // 2,
-            character_center_y - self.character_image.get_height() // 2,
-        )
-
         dialog_text = self.dialog_font.render(
             self.dialog_message, True, (255, 255, 255))
         dialog_width = dialog_text.get_width()
-        dialog_height = dialog_text.get_height()
         dialog_pos = (
-            character_center_x - dialog_width // 2,
-            50 + dialog_height // 2,  # Position dialog 50 pixels from the top
+            (self.screen_width - dialog_width) // 2,
+            460
         )
-        # current_time = pygame.time.get_ticks()
-        # if current_time - self.last_blink_time >= self.blink_interval:
-        #     self.heart_visible = not self.heart_visible
-        #     self.last_blink_time = current_time
 
-        if self.heart_visible:
-            self.screen.blit(self.character_image, character_pos)
+        if dialog_width > self.screen_width - 20:
+            alternative_dialog_text = self.alternative_font.render(
+                self.dialog_message, True, (255, 255, 255))
+            alternative_dialog_width = alternative_dialog_text.get_width()
+            alternative_dialog_pos = (
+                (self.screen_width - alternative_dialog_width) // 2,
+                460
+            )
+            self.screen.blit(alternative_dialog_text, alternative_dialog_pos)
+        else:
             self.screen.blit(dialog_text, dialog_pos)
+            
+            
+
+    def draw_character(self):
+        character_center_x = self.character_rect.x + self.character_rect.width // 2
+        character_center_y = self.character_rect.y + self.character_rect.height // 2
+
+        # Calculate the new image dimensions while preserving aspect ratio
+        max_width = 200  # Define the maximum width for the character image
+        max_height = 200  # Define the maximum height for the character image
+        image_width = self.character_image.get_width()
+        image_height = self.character_image.get_height()
+
+        if image_width > max_width or image_height > max_height:
+            # Calculate the scaling factor for width and height
+            width_ratio = max_width / image_width
+            height_ratio = max_height / image_height
+
+            # Choose the smaller scaling factor to maintain aspect ratio
+            scaling_factor = min(width_ratio, height_ratio)
+
+            # Calculate the new dimensions based on the scaling factor
+            new_width = int(image_width * scaling_factor)
+            new_height = int(image_height * scaling_factor)
+
+            # Scale down the character image
+            scaled_image = pygame.transform.scale(self.character_image, (new_width, new_height))
+
+            # Recalculate the character position based on the scaled image dimensions
+            character_pos = (
+                character_center_x - new_width // 2,
+                character_center_y - new_height // 2,
+            )
+
+            self.screen.blit(scaled_image, character_pos)
+        else:
+            # If the image doesn't exceed the maximum dimensions, draw it as is
+            character_pos = (
+                character_center_x - image_width // 2,
+                character_center_y - image_height // 2,
+            )
+            self.screen.blit(self.character_image, character_pos)
 
     def show_help_screen(self):
         help_image_path = "assets/inst.jpg"  # Replace with the path to your image
@@ -343,6 +386,7 @@ class Game:
 
     def run(self):
         running = True
+        self.show_help_screen()
         while running:
             running = self.handle_events()
             self.draw()
@@ -350,7 +394,7 @@ class Game:
          
             if current_time - self.last_blink_time >= self.blink_interval:
                 self.level_time -= 1
-                # self.incorrect_word_sound.play()
+                self.tick_sound.play()
                 if self.level_time <= 0:
                     self.lives -= 1
                     self.change_level()
@@ -369,13 +413,8 @@ class Game:
                 running = False
             if self.lives <= 0:
                 self.game_over_sound.play()
-                # game_over_text = self.font_game.render(
-                #     "PERDISTE!", True, self.game_over_color)
-                # game_over_rect = game_over_text.get_rect(
-                #     center=(self.screen_width/2, self.screen_height/2))
-                # self.screen.blit(game_over_text, game_over_rect)
-                # pygame.display.flip()
-                pygame.time.wait(3000)
+                self.draw()
+                pygame.time.wait(1000)
                 title = "Perdiste :("
                 message = "¿Quieres jugar de nuevo?"
                 choice = tp.AlertWithChoices(title, ("Nuevo juego","Salir"), message)

@@ -112,12 +112,12 @@ levels = [
         character=pygame.image.load("assets/characters/llanas01.png"),
         words=["Agudas", "Llanas", "Esdrújulas"],
         correct_word="LLanas",
-        dialogue="Las palabras que se acentúan cuando terminan en consonante que  no sea'N' ni'S' son: "
+        dialogue="Las palabras que se acentúan cuando terminan en consonante que no sea N o S son:"
     ),
     level.Level(
         background_image_path="assets/backrounds/animo.png",
         character=pygame.image.load("assets/characters/animo01.png"),
-        words=["Agudas", "Llana", "Esdrújula"],
+        words=["Aguda", "Llana", "Esdrújula"],
         dialogue="'Ánimo' es una palabra:",
         correct_word="Esdrújula"
     ),

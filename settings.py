@@ -8,7 +8,7 @@ FONT_GAME_SIZE = 24
 FONT_SCORE_SIZE = 32
 
 # Colors
-COLOR_BAR = (255, 255, 0)
+COLOR_BAR = (0, 0, 100)
 COLOR_HEART = (255, 0, 0)
 COLOR_WORD = (0, 0, 0)
 COLOR_GAME_OVER = (255, 0, 0)
@@ -17,7 +17,8 @@ COLOR_GAME_OVER = (255, 0, 0)
 SOUND_CLICK = "assets/sounds/click.wav"
 SOUND_CORRECT = "assets/sounds/correct.wav"
 SOUND_INCORRECT = "assets/sounds/incorrect.wav"
-SOUND_GAME_OVER = "assets/sounds/game_over.wav"
+SOUND_GAME_OVER = "assets/sounds/incorrect.wav"
+SOUND_TICK = "assets/sounds/tick.wav"
 
 # Image files
 IMAGE_BAKER = "baker.png"
