@@ -18,6 +18,7 @@ SOUND_CLICK = "assets/sounds/click.wav"
 SOUND_CORRECT = "assets/sounds/correct.wav"
 SOUND_INCORRECT = "assets/sounds/incorrect.wav"
 SOUND_GAME_OVER = "assets/sounds/incorrect.wav"
+SOUND_G_O = "assets/sounds/game_over.wav"
 SOUND_TICK = "assets/sounds/tick.wav"
 
 # Image files

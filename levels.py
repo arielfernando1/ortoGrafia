@@ -140,7 +140,7 @@ levels = [
         background_image_path="assets/backrounds/verdad.png",
         character=pygame.image.load("assets/characters/verdad01.png"),
         words=["Joven", "Verdad", "Imagen"],
-        dialogue="¿Cual de estas palabras no lleva tilde en su plural", 
+        dialogue="¿Cual de estas palabras no lleva tilde en su plural?", 
         correct_word="Verdad"
     )
 

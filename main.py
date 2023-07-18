@@ -48,7 +48,7 @@ class Game:
         self.game_over_color = settings.COLOR_GAME_OVER
         #Pygame menu
         self.menu = pygame_menu.Menu(
-            'Game', sw, sh, theme=pygame_menu.themes.THEME_DARK)
+            'OrtoPy', sw, sh, theme=pygame_menu.themes.THEME_DARK)
         # self.menu.add.text_input('Nombre: ', default='Jugador')
         # self.menu.add.selector('Dificultad: ', [('Fácil', 1), ('Difícil', 3)], onchange=self.set_difficulty())
         self.menu.add.button('Jugar', self.start_game)
@@ -65,6 +65,7 @@ class Game:
         self.incorrect_word_sound = pygame.mixer.Sound(
             settings.SOUND_INCORRECT)
         self.game_over_sound = pygame.mixer.Sound(settings.SOUND_GAME_OVER)
+        self.g_o_sound = pygame.mixer.Sound(settings.SOUND_G_O)
         self.character_image = self.level.character
         self.character_rect = self.character_image.get_rect(
             center=(self.screen_width/2, self.screen_height/2))
@@ -149,7 +150,7 @@ class Game:
 
     def draw_top_bar(self):
         pygame.draw.rect(self.screen, self.bar_color, pygame.Rect(
-            0, 0, self.screen_width, 60))
+            0, 0, self.screen_width, 64))
 
     def draw_bottom_bar(self):
         pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(
@@ -412,7 +413,7 @@ class Game:
                 pygame.time.wait(3000)
                 running = False
             if self.lives <= 0:
-                self.game_over_sound.play()
+                self.g_o_sound.play()
                 self.draw()
                 pygame.time.wait(1000)
                 title = "Perdiste :("
@@ -421,6 +422,7 @@ class Game:
                 choice.launch_alone()
                 if choice.get_value() == "Nuevo juego":
                     self.lives = 3
+                    self.score = 10
                     print("Nuevo juego")
                 else:
                     running = False
